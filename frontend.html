@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustGrid | Hyper-Optimized</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-body: #050505; --bg-panel: #141414; --bg-input: #262626;
+            --cyan-light: #00f2fe; --cyan-dark: #4facfe; --text-on-cyan: #000000;
+            --text-white: #ffffff; --text-gray: #a0a0a0;
+            --dash-bg: #0b0f19; --dash-card: #161b29;
+            --primary: #00f2fe; --danger: #ff4757; --success: #2ed573; --warning: #ffa502;
+            --ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
+            --sidebar-width: 260px; --sidebar-width-collapsed: 80px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        body.theme-default { --dash-bg:#0b0f19; --dash-card:#161b29; --primary:#00f2fe; }
+        body.theme-purple  { --dash-bg:#0f061a; --dash-card:#1a1029; --primary:#b084ff; }
+        body.theme-green   { --dash-bg:#07120e; --dash-card:#0f2019; --primary:#2ed573; }
+        body.theme-red     { --dash-bg:#120707; --dash-card:#201010; --primary:#ff4757; }
+        body.theme-orange  { --dash-bg:#111008; --dash-card:#1f1a0e; --primary:#ffa502; }
+
+        body { background-color:var(--bg-body); font-family:'Open Sans',sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; }
+
+        /* ── LOGIN ── */
+        #login-wrapper { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; z-index:100; transition:opacity .6s ease,transform .6s ease; background:radial-gradient(circle at center,#1a1a1a 0%,#000 100%); }
+        .container { background-color:var(--bg-panel); border-radius:20px; box-shadow:0 14px 28px rgba(0,0,0,.5),0 10px 10px rgba(0,0,0,.4); position:relative; overflow:hidden; width:850px; max-width:100%; min-height:550px; }
+        .form-container { position:absolute; top:0; height:100%; transition:all .6s ease-in-out; }
+        .sign-up-container { left:0; width:50%; opacity:0; z-index:1; }
+        .sign-in-container { left:0; width:50%; z-index:2; }
+        .container.right-panel-active .sign-in-container { transform:translateX(100%); }
+        .container.right-panel-active .sign-up-container { transform:translateX(100%); opacity:1; z-index:5; animation:show .6s; }
+        @keyframes show { 0%,49.99%{opacity:0;z-index:1}50%,100%{opacity:1;z-index:5} }
+        .overlay-container { position:absolute; top:0; left:50%; width:50%; height:100%; overflow:hidden; transition:transform .6s ease-in-out; z-index:100; }
+        .container.right-panel-active .overlay-container { transform:translateX(-100%); }
+        .overlay { background:linear-gradient(to right,var(--cyan-dark),var(--cyan-light)); color:var(--text-on-cyan); position:relative; left:-100%; height:100%; width:200%; transform:translateX(0); transition:transform .6s ease-in-out; }
+        .container.right-panel-active .overlay { transform:translateX(50%); }
+        .overlay-panel { position:absolute; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:0 40px; text-align:center; top:0; height:100%; width:50%; transform:translateX(0); transition:transform .6s ease-in-out; }
+        .overlay-panel h1 { color:#000; font-weight:800; }
+        .overlay-panel p  { color:#1a1a1a; font-weight:600; }
+        .overlay-left  { transform:translateX(-20%); }
+        .container.right-panel-active .overlay-left  { transform:translateX(0); }
+        .overlay-right { right:0; transform:translateX(0); }
+        .container.right-panel-active .overlay-right { transform:translateX(20%); }
+        form { background-color:var(--bg-panel); display:flex; align-items:center; justify-content:center; flex-direction:column; padding:0 50px; height:100%; text-align:center; }
+        h1 { font-weight:800; margin:0; font-family:'Montserrat',sans-serif; color:var(--text-white); margin-bottom:20px; }
+        .input-group { position:relative; width:100%; margin:8px 0; }
+        .input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text-gray); transition:.3s; }
+        input { background-color:var(--bg-input); border:1px solid transparent; padding:12px 15px 12px 45px; width:100%; color:var(--text-white); border-radius:8px; font-size:14px; transition:.3s; }
+        input:focus { border-color:var(--cyan-light); background:#333; }
+        button { border-radius:50px; font-size:12px; font-weight:bold; padding:12px 45px; letter-spacing:1px; text-transform:uppercase; transition:.3s; cursor:pointer; margin-top:20px; }
+        .btn-grad { background:linear-gradient(to right,var(--cyan-dark),var(--cyan-light)); color:#000; border:none; box-shadow:0 4px 15px rgba(0,242,254,.3); }
+        .btn-grad:hover { transform:scale(1.05); }
+        .btn-ghost { background-color:transparent; border:2px solid #000; color:#000; }
+        .btn-ghost:hover { background:#000; color:#fff; }
+
+        /* ── DASHBOARD ── */
+        #dashboard-view { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--dash-bg); display:grid; grid-template-columns:var(--sidebar-width-collapsed) 1fr; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .5s ease,grid-template-columns .35s var(--ease-smooth); z-index:50; }
+        #dashboard-view.active { opacity:1; visibility:visible; pointer-events:all; }
+        #dashboard-view:has(.sidebar:hover) { grid-template-columns:var(--sidebar-width) 1fr; }
+        .sidebar:not(:hover) .nav-chevron { opacity:0; pointer-events:none; }
+        .sidebar { background:#0d121f; border-right:1px solid rgba(255,255,255,.05); padding:30px 15px; display:flex; flex-direction:column; transition:width .3s var(--ease-smooth); overflow:visible; white-space:nowrap; z-index:100; width:var(--sidebar-width-collapsed); }
+        .sidebar:hover { width:var(--sidebar-width); }
+        .logo { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:40px; display:flex; align-items:center; justify-content:space-between; font-family:'Montserrat',sans-serif; padding:0 5px; }
+        .logo-icon { color:var(--primary); min-width:30px; display:flex; justify-content:center; font-size:1.6rem; }
+       /* Hide text and prevent it from taking up space when collapsed */
+/* 1. Hide text and prevent it from overflowing the 80px width */
+.logo-text, .nav-text { 
+    opacity: 0;
+    width: 0;
+    display: inline-block; /* Allows width to be applied */
+    overflow: hidden;      /* Clips the text so it can't be seen */
+    transition: opacity 0.2s, width 0.3s;
+    white-space: nowrap;   /* Stops text from wrapping to a new line */
+    vertical-align: middle;
+}
+
+/* 2. Show text smoothly when the sidebar expands */
+.sidebar:hover .logo-text, 
+.sidebar:hover .nav-text { 
+    opacity: 1;
+    width: auto;          /* Let it take up its natural space */
+    margin-left: 10px;    /* Space between icon and text */
+}
+
+/* 3. Ensure icons are perfectly centered in the 80px collapsed state */
+.nav-item i, .logo-icon {
+    min-width: 50px;      /* Fixed width for icons */
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+/* 4. Fix the flex alignment so icons don't move */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 15px;
+    overflow: hidden;    /* Safety clip */
+}
+        .nav-item { padding:14px 12px; border-radius:10px; color:#94a3b8; cursor:pointer; display:flex; align-items:center; gap:15px; font-weight:600; font-size:.9rem; transition:.3s; margin-bottom:8px; overflow:visible; position:relative; }
+        .nav-item i { min-width:30px; text-align:center; font-size:1.1rem; transition:transform .3s; }
+        .nav-item:hover { color:#fff; background:rgba(255,255,255,.05); }
+        .nav-item:hover i { transform:scale(1.1); color:var(--primary); }
+        .nav-item.active { background:rgba(0,242,254,.1); color:var(--primary); }
+        .nav-item.active i { color:var(--primary); }
+        .user-profile-section { margin-top:auto; position:relative; }
+        .user-popup { position:absolute; bottom:100%; left:0; width:100%; background:#161b29; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:8px; margin-bottom:12px; opacity:0; visibility:hidden; transform:translateY(10px); transition:all .3s var(--ease-smooth); z-index:200; box-shadow:0 -5px 25px rgba(0,0,0,.5); }
+        .user-popup.active { opacity:1; visibility:visible; transform:translateY(0); }
+        .popup-item { padding:12px 15px; color:#94a3b8; cursor:pointer; border-radius:8px; display:flex; align-items:center; gap:12px; font-size:.9rem; font-weight:600; transition:.2s; }
+        .popup-item:hover { background:rgba(255,255,255,.05); color:#fff; }
+        .main-content { padding:40px; overflow-y:auto; }
+        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+        .header h2 { font-family:'Montserrat',sans-serif; color:#fff; }
+        .pulse-badge { background:rgba(46,213,115,.15); color:var(--success); padding:6px 15px; border-radius:20px; font-size:.8rem; font-weight:700; display:flex; align-items:center; gap:8px; border:1px solid rgba(46,213,115,.3); }
+        .dot { width:8px; height:8px; background:var(--success); border-radius:50%; animation:pulse 2s infinite; }
+        @keyframes pulse { 0%{opacity:1}50%{opacity:.4}100%{opacity:1} }
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+        .card { background:var(--dash-card); border-radius:16px; padding:25px; border:1px solid rgba(255,255,255,.05); }
+        .stat-title { font-size:.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+        .tab-view { display:none; }
+        .tab-view.active-view { display:block; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)} }
+        .tab-view.animate-in { animation:fadeUp .4s ease forwards; }
+        .log-table { width:100%; border-collapse:collapse; margin-top:10px; }
+        .log-table th { text-align:left; color:#94a3b8; padding:10px; border-bottom:1px solid rgba(255,255,255,.1); font-size:.8rem; }
+        .log-table td { padding:12px 10px; color:#fff; font-size:.9rem; border-bottom:1px solid rgba(255,255,255,.05); }
+        .log-table tr:hover { background:rgba(255,255,255,.03); }
+        .code-font { font-family:'Courier New',monospace; color:var(--primary); }
+        .scan-btn { background:transparent; border:1px solid var(--primary); color:var(--primary); border-radius:8px; padding:8px 16px; font-size:.7rem; font-weight:800; cursor:pointer; transition:all .3s; text-transform:uppercase; margin-top:10px; }
+        .scan-btn:hover { background:var(--primary); color:#000; }
+        .scan-btn:disabled { opacity:.5; cursor:not-allowed; }
+        .top-row-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+        .privacy-card,.consensus-card { background:var(--dash-card); border-radius:16px; padding:25px; border:1px solid rgba(255,255,255,.05); display:flex; justify-content:space-between; align-items:center; }
+        .card-visual { font-size:2rem; font-weight:800; color:var(--primary); }
+        .glow-green { box-shadow:0 4px 20px rgba(46,213,115,.15); border-color:rgba(46,213,115,.25); }
+        .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+        .toggle-switch { width:40px; height:20px; background:#333; border-radius:20px; position:relative; cursor:pointer; transition:.3s; }
+        .toggle-switch::after { content:''; position:absolute; left:2px; top:2px; width:16px; height:16px; background:#fff; border-radius:50%; transition:.3s; }
+        .toggle-switch.active { background:var(--primary); }
+        .toggle-switch.active::after { left:22px; }
+        /* Alert toast */
+        #toast { position:fixed; bottom:30px; right:30px; background:#161b29; border:1px solid var(--primary); color:#fff; padding:14px 22px; border-radius:12px; font-size:.9rem; opacity:0; transition:opacity .4s; z-index:9999; max-width:340px; }
+        #toast.show { opacity:1; }
+        #toast.err { border-color:var(--danger); }
+    </style>
+</head>
+<body>
+
+<!-- ─── LOGIN ─────────────────────────────────────────── -->
+<div id="login-wrapper">
+    <div class="container" id="container">
+        <div class="form-container sign-up-container">
+            <form id="register-form">
+                <h1>Create Account</h1>
+                <div class="input-group"><i class="fas fa-fingerprint"></i><input type="text" id="reg-node" placeholder="Choose Node ID" required/></div>
+                <div class="input-group"><i class="fas fa-building"></i><input type="text" id="reg-company" placeholder="Company / Bank Name" required/></div>
+                <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-key" placeholder="Secure Key" required/></div>
+                <button class="btn-grad" type="submit">Register Node</button>
+            </form>
+        </div>
+        <div class="form-container sign-in-container">
+            <form id="login-form">
+                <h1>Login</h1>
+                <div class="input-group"><i class="fas fa-fingerprint"></i><input type="text" id="login-node" placeholder="Node ID" required/></div>
+                <div class="input-group"><i class="fas fa-key"></i><input type="password" id="login-key" placeholder="Secure Key" required/></div>
+                <button class="btn-grad" id="login-btn" type="submit">Access Node</button>
+                     <p style="margin-top:15px; font-size:0.8rem; color:var(--text-gray); cursor:pointer;" onclick="recoverAccount()">
+                         Forgot Node ID or Key?
+                    </p>
+            </form>
+        </div>
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>Login with your node credentials to access the system.</p>
+                    <button class="btn-ghost" id="signIn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>TrustGrid</h1>
+                    <p>Decentralized Fraud Detection </p>
+                    <button class="btn-ghost" id="signUp">Register</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── DASHBOARD ─────────────────────────────────────── -->
+<div id="dashboard-view">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-brain"></i></div>
+            <span class="logo-text">TrustGrid</span>
+        </div>
+        <div class="nav-item active" onclick="switchTab('overview',this)" data-title="Overview"><i class="fas fa-chart-line"></i><span class="nav-text">Overview</span></div>
+        <div class="nav-item" onclick="switchTab('upload',this)" data-title="Upload"><i class="fas fa-upload"></i><span class="nav-text">Upload & Analyze</span></div>
+        <div class="nav-item" onclick="switchTab('global',this);loadGlobal()" data-title="Global Analysis"><i class="fas fa-globe"></i><span class="nav-text">Global Analysis</span></div>
+        <div class="nav-item" onclick="switchTab('logs',this);loadLogs()" data-title="Activity Logs"><i class="fas fa-terminal"></i><span class="nav-text">Activity Logs</span></div>
+        <div class="nav-item" onclick="switchTab('nodes',this);loadNodes()" data-title="Network Nodes"><i class="fas fa-network-wired"></i><span class="nav-text">Network Nodes</span></div>
+        <div class="user-profile-section">
+            <div class="nav-item" onclick="toggleUserMenu(event)" data-title="My Node" style="margin-bottom:0">
+                <i class="fas fa-user-circle"></i>
+                <span class="nav-text" id="sidebar-username">My Node</span>
+                <i class="fas fa-chevron-up nav-chevron nav-text" style="font-size:.8rem; margin-left:auto;"></i>
+            </div>
+            <div id="user-menu-popup" class="user-popup">
+                <div class="popup-item" onclick="switchTab('settings',null);toggleUserMenu(event)"><i class="fas fa-cog"></i>Settings</div>
+                <div class="popup-item" style="color:var(--danger)" onclick="location.reload()"><i class="fas fa-sign-out-alt"></i>Logout</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <div>
+                <h2>System Dashboard</h2>
+                <p style="color:#94a3b8">Real-time collaboration active — Node: <b id="header-node" style="color:var(--primary)">—</b></p>
+            </div>
+            <div class="pulse-badge"><div class="dot"></div>ONLINE</div>
+        </div>
+
+        <!-- ── TAB: OVERVIEW ── -->
+        <div id="tab-overview" class="tab-view active-view animate-in">
+            <div class="top-row-grid">
+                <div class="privacy-card glow-green">
+                    <div class="card-info">
+                        <h3 style="color:#fff">Collaborative Fraud Engine</h3>
+                        <p style="color:#94a3b8;margin-top:5px">Multi-node federated analysis</p>
+                    </div>
+                    <div class="card-visual">ACTIVE</div>
+                </div>
+                <div class="consensus-card">
+                    <div class="card-info">
+                        <h3 style="color:#fff">Connected Nodes</h3>
+                        <p style="color:#94a3b8;margin-top:5px">Sharing encrypted signals</p>
+                    </div>
+                    <div class="card-visual" id="ov-node-count">—</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="stat-title">Quick Stats</div>
+                    <table class="log-table" id="ov-results-table">
+                        <tr><th>Company</th><th>Records</th><th>Fraud</th><th>Rate</th></tr>
+                        <tr><td colspan="4" style="color:#666;text-align:center;padding:20px">Upload a dataset to see results</td></tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="stat-title">System Status</div>
+                    <div style="margin-top:15px;color:#94a3b8;line-height:2">
+                        <div>Backend: <span style="color:var(--success)" id="ov-backend-status">Checking…</span></div>
+                        <div>Your Node: <span style="color:var(--primary)" id="ov-mynode">—</span></div>
+                        <div>Company: <span style="color:#fff" id="ov-company">—</span></div>
+                        <div>Data Submitted: <span style="color:#fff" id="ov-data-status">No</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: UPLOAD & ANALYZE ── -->
+        <div id="tab-upload" class="tab-view animate-in">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="stat-title">Upload Your Dataset</div>
+                    <p style="color:#94a3b8;margin:10px 0;font-size:.85rem">Your node: <b style="color:var(--primary)" id="up-node-label">—</b></p>
+                    <div style="border:2px dashed #333;padding:30px;text-align:center;border-radius:12px;margin-top:10px">
+                        <i class="fas fa-file-upload" style="font-size:2rem;color:var(--primary)"></i>
+                        <p style="color:#94a3b8;margin-top:10px">CSV file with <b>amount</b> and <b>time</b> columns</p>
+                        <input type="file" id="fileInput" accept=".csv" hidden />
+                        <button class="scan-btn" id="upload-btn" onclick="handleUpload()">Upload & Analyze</button>
+                        <div id="upload-status" style="margin-top:12px;color:#94a3b8;font-size:.85rem"></div>
+                    </div>
+
+                    <!-- CSV Format Guide -->
+                    <div style="margin-top:20px;padding:15px;background:rgba(0,242,254,.05);border-radius:10px;border:1px solid rgba(0,242,254,.1)">
+                        <div style="color:var(--primary);font-weight:700;font-size:.8rem;margin-bottom:8px">EXPECTED CSV FORMAT</div>
+                        <code style="color:#94a3b8;font-size:.8rem;line-height:1.8;display:block">
+                            amount, time<br>
+                            5000, 14:30<br>
+                            15000, 02:00  ← flagged (amount + time)<br>
+                            200,  09:00<br>
+                        </code>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-title">My Analysis Result</div>
+                    <div id="analyze-result" style="margin-top:15px;color:#94a3b8">
+                        Upload and analyze a file to see your node's results here.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: GLOBAL ANALYSIS ── -->
+        <div id="tab-global" class="tab-view animate-in">
+            <div class="card">
+                <div class="stat-title">Collaborative Fraud Detection</div>
+                <p style="color:#94a3b8;margin:10px 0;font-size:.85rem">Requires minimum 2 nodes with data uploaded in the <b style="color:var(--primary)">last 24 hours</b>. Each node must be registered from a different device.</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:5px">
+                    <button class="scan-btn" onclick="loadGlobal()">Run Global Analysis</button>
+                    <button class="scan-btn" style="border-color:var(--warning);color:var(--warning)" onclick="clearAndRefresh()">Clear My Stale Data</button>
+                </div>
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+    <p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 10px;">
+        <i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> 
+        Stop sharing your node's data with the network?
+    </p>
+    <button class="scan-btn" style="border-color: var(--danger); color: var(--danger); font-size: 0.65rem;" onclick="discontinueConnection()">
+        Discontinue Connection
+    </button>
+</div>
+                <div id="global-result" style="margin-top:20px"></div>
+            </div>
+
+            <div class="card" style="margin-top:24px">
+                <div class="stat-title">Past Outcomes (Case Memory)</div>
+                <table class="log-table" id="outcomes-table">
+                    <tr><th>Date</th><th>Nodes</th><th>Total Records</th><th>Fraud</th><th>Decision</th></tr>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top:24px">
+                <div class="stat-title">Download Report</div>
+                <p style="color:#94a3b8;margin:10px 0;font-size:.85rem">
+                    Generates a full PDF report with per-node breakdown and an AI narrative summary written by Gemma 4. Requires at least 2 nodes to have submitted data.
+                </p>
+                <button class="scan-btn" id="report-btn" onclick="downloadReport()">
+                    <i class="fas fa-file-download"></i> &nbsp; Download PDF Report
+                </button>
+                <div id="report-status" style="margin-top:10px;font-size:.85rem;color:#94a3b8"></div>
+            </div>
+        </div>
+
+        <!-- ── TAB: ACTIVITY LOGS ── -->
+        <div id="tab-logs" class="tab-view animate-in">
+            <div class="card">
+                <div class="stat-title">Recent Activity (Hashed for Privacy)</div>
+                <table class="log-table" id="logs-table">
+                    <tr><th>Company</th><th>Hash Preview</th><th>Status</th><th>Timestamp</th></tr>
+                    <tr><td colspan="4" style="color:#666;text-align:center;padding:20px">No logs yet</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── TAB: NETWORK NODES ── -->
+        <div id="tab-nodes" class="tab-view animate-in">
+            <div class="card">
+                <div class="stat-title">Registered Nodes</div>
+                <table class="log-table" id="nodes-table">
+                    <tr><th>Node ID</th><th>Company</th><th>Data Submitted</th><th>Joined</th></tr>
+                    <tr><td colspan="4" style="color:#666;text-align:center;padding:20px">Loading…</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── TAB: SETTINGS ── -->
+        <div id="tab-settings" class="tab-view animate-in">
+            <div class="card">
+                <div class="stat-title">Theme Settings</div>
+                <select id="themeSelect" style="width:100%;padding:10px;margin-top:10px;background:#0e1420;color:#fff;border:none;border-radius:8px" onchange="changeTheme(this.value)">
+                    <option value="theme-default">Default Cyan</option>
+                    <option value="theme-purple">Purple</option>
+                    <option value="theme-green">Green</option>
+                    <option value="theme-red">Red</option>
+                    <option value="theme-orange">Orange</option>
+                </select>
+            </div>
+            <div class="card" style="margin-top:24px">
+                <div class="stat-title">My Node Info</div>
+                <div style="margin-top:15px;color:#94a3b8;line-height:2.2">
+                    <div>Node ID: <span style="color:var(--primary)" id="set-node">—</span></div>
+                    <div>Company: <span style="color:#fff" id="set-company">—</span></div>
+                    <div>Backend: <span style="color:#fff">http://localhost:5000</span></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<script>
+    // ════════════════════════════════════════
+    //  CONFIG
+    // ════════════════════════════════════════
+    const API = "http://localhost:5000";  // Change if backend runs elsewhere
+    let currentNode = null;   // { node_id, company }
+
+    // ════════════════════════════════════════
+    //  TOAST HELPER
+    // ════════════════════════════════════════
+    function toast(msg, isErr=false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'show' + (isErr ? ' err' : '');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.className = '', 3500);
+    }
+
+    // ════════════════════════════════════════
+    //  BACKEND HEALTH CHECK
+    // ════════════════════════════════════════
+    async function checkBackend() {
+        try {
+            const r = await fetch(`${API}/nodes`);
+            if (r.ok) {
+                document.getElementById('ov-backend-status').textContent = 'Connected ✓';
+                document.getElementById('ov-backend-status').style.color = 'var(--success)';
+            }
+        } catch {
+            document.getElementById('ov-backend-status').textContent = 'Offline ✗ — Start app.py';
+            document.getElementById('ov-backend-status').style.color = 'var(--danger)';
+        }
+    }
+
+    // ════════════════════════════════════════
+    //  1. LOGIN / REGISTER
+    // ════════════════════════════════════════
+    document.getElementById('signUp').addEventListener('click', () => document.getElementById('container').classList.add("right-panel-active"));
+    document.getElementById('signIn').addEventListener('click', () => document.getElementById('container').classList.remove("right-panel-active"));
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const node_id = document.getElementById('login-node').value.trim();
+        const key     = document.getElementById('login-key').value.trim();
+        const btn     = document.getElementById('login-btn');
+        
+        btn.textContent = 'Verifying...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ node_id, key })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                currentNode = { node_id: data.node_id, company: data.company };
+                enterDashboard();
+                toast(data.message);
+            } else {
+                // This specifically catches the "Incorrect key" error from backend
+                toast(data.message, true); 
+                btn.textContent = 'Access Node';
+                btn.disabled = false;
+            }
+        } catch {
+            toast('Server error. Is app.py running?', true);
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const node_id = document.getElementById('reg-node').value.trim();
+        const company = document.getElementById('reg-company').value.trim();
+        const key     = document.getElementById('reg-key').value.trim();
+
+        try {
+            const res = await fetch(`${API}/register`, { 
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ node_id, key, company })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                toast("Registration successful! You can now Login.");
+                // This line automatically slides the UI back to the Login panel
+                document.getElementById('container').classList.remove("right-panel-active");
+            } else {
+                toast(data.message, true);
+            }
+        } catch {
+            toast('Registration failed. Check backend connection.', true);
+        }
+    });
+
+    function enterDashboard() {
+        // Slide away login
+        const lw = document.getElementById('login-wrapper');
+        lw.style.opacity = '0';
+        lw.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            lw.style.display = 'none';
+            document.getElementById('dashboard-view').classList.add('active');
+            updateNodeUI();
+            checkBackend();
+            loadResults();
+        }, 600);
+    }
+
+    function updateNodeUI() {
+        if (!currentNode) return;
+        document.getElementById('sidebar-username').textContent = currentNode.company;
+        document.getElementById('header-node').textContent     = currentNode.node_id;
+        document.getElementById('ov-mynode').textContent       = currentNode.node_id;
+        document.getElementById('ov-company').textContent      = currentNode.company;
+        document.getElementById('up-node-label').textContent   = `${currentNode.node_id} (${currentNode.company})`;
+        document.getElementById('set-node').textContent        = currentNode.node_id;
+        document.getElementById('set-company').textContent     = currentNode.company;
+    }
+
+    // ════════════════════════════════════════
+    //  2. UPLOAD + ANALYZE
+    // ════════════════════════════════════════
+    function handleUpload() {
+        document.getElementById('fileInput').click();
+    }
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!currentNode) { toast('Please login first', true); return; }
+
+        const statusEl = document.getElementById('upload-status');
+        const btn      = document.getElementById('upload-btn');
+        btn.disabled   = true;
+        statusEl.textContent = '⏳ Uploading…';
+
+        // Step 1: Upload file
+        const form = new FormData();
+        form.append('file', file);
+        form.append('node_id', currentNode.node_id);
+
+        try {
+            const upRes  = await fetch(`${API}/upload`, { method:'POST', body:form });
+            const upData = await upRes.json();
+
+            if (!upData.success) {
+                statusEl.textContent = '✗ Upload failed: ' + upData.message;
+                btn.disabled = false;
+                return;
+            }
+
+            statusEl.textContent = '✓ Uploaded. Analyzing…';
+
+            // Step 2: Analyze
+            const anRes  = await fetch(`${API}/analyze`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ node_id: currentNode.node_id })
+            });
+            const anData = await anRes.json();
+
+            if (anData.success) {
+                statusEl.textContent = '✓ Analysis complete!';
+                document.getElementById('ov-data-status').textContent = 'Yes ✓';
+                showAnalyzeResult(anData);
+                loadResults();   // refresh overview table
+                toast(`Analysis done — ${anData.fraud_count} fraud out of ${anData.total} records`);
+            } else {
+                statusEl.textContent = '✗ Analysis failed: ' + anData.message;
+            }
+        } catch (err) {
+            statusEl.textContent = '✗ Error: ' + err.message;
+        }
+
+        btn.disabled = false;
+        e.target.value = '';   // Reset file input
+    });
+
+    function showAnalyzeResult(d) {
+        const color = d.fraud_rate > 10 ? 'var(--danger)' : d.fraud_rate > 5 ? 'var(--warning)' : 'var(--success)';
+        document.getElementById('analyze-result').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px">
+                <div style="background:#0e1420;padding:15px;border-radius:10px">
+                    <div style="color:#94a3b8;font-size:.75rem">Company</div>
+                    <div style="color:var(--primary);font-size:1.1rem;font-weight:700">${d.company}</div>
+                </div>
+                <div style="background:#0e1420;padding:15px;border-radius:10px">
+                    <div style="color:#94a3b8;font-size:.75rem">Total Records</div>
+                    <div style="color:#fff;font-size:1.1rem;font-weight:700">${d.total.toLocaleString()}</div>
+                </div>
+                <div style="background:#0e1420;padding:15px;border-radius:10px">
+                    <div style="color:#94a3b8;font-size:.75rem">Fraud Detected</div>
+                    <div style="color:var(--danger);font-size:1.1rem;font-weight:700">${d.fraud_count}</div>
+                </div>
+                <div style="background:#0e1420;padding:15px;border-radius:10px">
+                    <div style="color:#94a3b8;font-size:.75rem">Fraud Rate</div>
+                    <div style="color:${color};font-size:1.1rem;font-weight:700">${d.fraud_rate}%</div>
+                </div>
+            </div>
+            <div style="margin-top:15px;padding:12px;background:rgba(0,242,254,.07);border-radius:10px;color:#94a3b8;font-size:.85rem">
+                ✓ Amounts hashed with SHA-256 — raw data not stored
+            </div>`;
+    }
+
+    // ════════════════════════════════════════
+    //  3. RESULTS (overview table)
+    // ════════════════════════════════════════
+    async function loadResults() {
+        try {
+            const res = await fetch(`${API}/results?node_id=${currentNode.node_id}`);
+            const data = await res.json();
+            if (!data.success) return;
+
+            document.getElementById('ov-node-count').textContent = data.results.length || '—';
+
+            if (data.results.length === 0) return;
+
+            const rows = data.results.map(r => {
+                const rateColor = r.fraud_rate > 10 ? 'var(--danger)' : r.fraud_rate > 5 ? 'var(--warning)' : 'var(--success)';
+                return `<tr>
+                    <td>${r.company}</td>
+                    <td>${r.total.toLocaleString()}</td>
+                    <td style="color:var(--danger)">${r.fraud_count}</td>
+                    <td style="color:${rateColor}">${r.fraud_rate}%</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('ov-results-table').innerHTML = `
+                <tr><th>Company</th><th>Records</th><th>Fraud</th><th>Rate</th></tr>
+                ${rows}`;
+        } catch { /* backend offline */ }
+    }
+
+    // ════════════════════════════════════════
+    //  4. GLOBAL ANALYSIS
+    // ════════════════════════════════════════
+    async function loadGlobal() {
+        const el = document.getElementById('global-result');
+        el.innerHTML = '<span style="color:#94a3b8">Running analysis…</span>';
+
+        try {
+            const res  = await fetch(`${API}/global_analysis`);
+            const data = await res.json();
+
+            if (!data.success) {
+                el.innerHTML = `<div style="color:var(--warning);padding:15px;background:rgba(255,165,0,.1);border-radius:10px">${data.message}</div>`;
+                return;
+            }
+
+            const isfraud = data.decision === "FRAUD DETECTED";
+            const decColor = isfraud ? 'var(--danger)' : 'var(--success)';
+            el.innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">
+                    <div style="background:#0e1420;padding:15px;border-radius:10px">
+                        <div style="color:#94a3b8;font-size:.75rem">Participating Nodes</div>
+                        <div style="color:var(--primary);font-size:1.5rem;font-weight:700">${data.node_count}</div>
+                    </div>
+                    <div style="background:#0e1420;padding:15px;border-radius:10px">
+                        <div style="color:#94a3b8;font-size:.75rem">Total Records</div>
+                        <div style="color:#fff;font-size:1.5rem;font-weight:700">${data.total_records.toLocaleString()}</div>
+                    </div>
+                    <div style="background:#0e1420;padding:15px;border-radius:10px">
+                        <div style="color:#94a3b8;font-size:.75rem">Total Fraud</div>
+                        <div style="color:var(--danger);font-size:1.5rem;font-weight:700">${data.total_fraud}</div>
+                    </div>
+                </div>
+                <div style="margin-top:20px;padding:20px;background:${isfraud?'rgba(255,71,87,.12)':'rgba(46,213,115,.12)'};border:1px solid ${decColor};border-radius:12px;text-align:center">
+                    <div style="font-size:1.6rem;font-weight:800;color:${decColor}">${data.decision}</div>
+                    <div style="color:#94a3b8;margin-top:5px">Fraud rate: ${data.fraud_rate}% across ${data.node_count} nodes</div>
+                </div>`;
+
+            loadOutcomes();
+        } catch {
+            el.innerHTML = '<div style="color:var(--danger)">Cannot reach backend.</div>';
+        }
+    }
+
+    // ════════════════════════════════════════
+    //  5. PAST OUTCOMES
+    // ════════════════════════════════════════
+    async function loadOutcomes() {
+        try {
+            const res  = await fetch(`${API}/outcomes`);
+            const data = await res.json();
+            const tb   = document.getElementById('outcomes-table');
+
+            if (!data.outcomes.length) {
+                tb.innerHTML = '<tr><th>Date</th><th>Nodes</th><th>Total Records</th><th>Fraud</th><th>Decision</th></tr><tr><td colspan="5" style="color:#666;text-align:center;padding:20px">No past outcomes</td></tr>';
+                return;
+            }
+
+            const rows = data.outcomes.map(o => {
+                const c = o.decision === 'FRAUD DETECTED' ? 'var(--danger)' : 'var(--success)';
+                return `<tr>
+                    <td style="color:#94a3b8;font-size:.8rem">${o.timestamp.split('.')[0]}</td>
+                    <td>${o.node_count}</td>
+                    <td>${o.total_records.toLocaleString()}</td>
+                    <td style="color:var(--danger)">${o.total_fraud}</td>
+                    <td style="color:${c};font-weight:700">${o.decision}</td>
+                </tr>`;
+            }).join('');
+
+            tb.innerHTML = `<tr><th>Date</th><th>Nodes</th><th>Total Records</th><th>Fraud</th><th>Decision</th></tr>${rows}`;
+        } catch {}
+    }
+
+    // ════════════════════════════════════════
+    //  6. LOGS
+    // ════════════════════════════════════════
+    async function loadLogs() {
+        try {
+            const res = await fetch(`${API}/logs?node_id=${currentNode.node_id}`);
+            const data = await res.json();
+            const tb   = document.getElementById('logs-table');
+
+            if (!data.logs.length) {
+                tb.innerHTML = '<tr><th>Company</th><th>Hash Preview</th><th>Status</th><th>Timestamp</th></tr><tr><td colspan="4" style="color:#666;text-align:center;padding:20px">No activity yet</td></tr>';
+                return;
+            }
+
+            const rows = data.logs.map(l => {
+                const c = l.status === 'FRAUD' ? 'var(--danger)' : 'var(--success)';
+                return `<tr>
+                    <td>${l.company}</td>
+                    <td class="code-font">${l.hash_preview}</td>
+                    <td style="color:${c};font-weight:700">${l.status}</td>
+                    <td style="color:#94a3b8;font-size:.8rem">${l.timestamp.split('.')[0]}</td>
+                </tr>`;
+            }).join('');
+
+            tb.innerHTML = `<tr><th>Company</th><th>Hash Preview</th><th>Status</th><th>Timestamp</th></tr>${rows}`;
+        } catch {}
+    }
+
+    // ════════════════════════════════════════
+    //  7. NODES
+    // ════════════════════════════════════════
+    async function loadNodes() {
+        try {
+            const res  = await fetch(`${API}/nodes`);
+            const data = await res.json();
+            const tb   = document.getElementById('nodes-table');
+
+            if (!data.nodes.length) {
+                tb.innerHTML = '<tr><th>Node ID</th><th>Company</th><th>Data Submitted</th><th>Joined</th></tr><tr><td colspan="4" style="color:#666;text-align:center;padding:20px">No nodes registered</td></tr>';
+                return;
+            }
+
+            const rows = data.nodes.map(n => `<tr>
+                <td class="code-font">${n.node_id}</td>
+                <td>${n.company}</td>
+                <td style="color:${n.has_data?'var(--success)':'#666'}">${n.has_data ? 'Yes ✓' : 'No'}</td>
+                <td style="color:#94a3b8;font-size:.8rem">${n.joined.split('.')[0]}</td>
+            </tr>`).join('');
+
+            tb.innerHTML = `<tr><th>Node ID</th><th>Company</th><th>Data Submitted</th><th>Joined</th></tr>${rows}`;
+        } catch {}
+    }
+
+    // ════════════════════════════════════════
+    //  UI HELPERS
+    // ════════════════════════════════════════
+    function switchTab(tabId, navEl) {
+        document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active-view','animate-in'));
+        const target = document.getElementById('tab-' + tabId);
+        if (target) { target.classList.add('active-view'); void target.offsetWidth; target.classList.add('animate-in'); }
+        if (navEl) { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); navEl.classList.add('active'); }
+    }
+
+    function toggleUserMenu(e) {
+        e.stopPropagation();
+        document.getElementById('user-menu-popup').classList.toggle('active');
+    }
+    document.addEventListener('click', function(e) {
+        const popup = document.getElementById('user-menu-popup');
+        const ps    = document.querySelector('.user-profile-section');
+        if (!ps.contains(e.target) && popup.classList.contains('active')) popup.classList.remove('active');
+    });
+
+    function changeTheme(t) {
+        document.body.className = t;
+        localStorage.setItem('dashboardTheme', t);
+    }
+    window.onload = () => {
+        const saved = localStorage.getItem('dashboardTheme');
+        if (saved) { document.body.className = saved; document.getElementById('themeSelect').value = saved; }
+    };
+
+async function recoverAccount() {
+    const node_id = prompt("Step 1 of 3 — Enter your Node ID:");
+    if (!node_id) return;
+
+    const company = prompt("Step 2 of 3 — Enter your registered Company Name (must match exactly):");
+    if (!company) return;
+
+    const new_key = prompt("Step 3 of 3 — Enter your new Secure Key:");
+    if (!new_key || new_key.length < 4) {
+        alert("Key must be at least 4 characters.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/reset_key`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ node_id, company, new_key })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            alert("Key reset successful!\n\nYou can now login with your new key.");
+        } else {
+            alert("Reset failed: " + data.message);
+        }
+    } catch {
+        alert("Error connecting to server. Is app.py running?");
+    }
+}
+
+// ════════════════════════════════════════
+    //  8. CLEAR STALE DATA
+    // ════════════════════════════════════════
+    async function clearAndRefresh() {
+        if (!currentNode) { toast('Please login first', true); return; }
+        if (!confirm("This will delete your previously submitted data so a fresh analysis can begin. Continue?")) return;
+
+        try {
+            const res  = await fetch(`${API}/clear_data`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ node_id: currentNode.node_id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('global-result').innerHTML = '';
+                document.getElementById('ov-data-status').textContent = 'No';
+                toast('Stale data cleared. Upload a fresh CSV to begin.');
+            } else {
+                toast(data.message, true);
+            }
+        } catch {
+            toast('Cannot reach backend.', true);
+        }
+    }
+
+// ════════════════════════════════════════
+    //  8. DOWNLOAD REPORT
+    // ════════════════════════════════════════
+    async function downloadReport() {
+        const btn    = document.getElementById('report-btn');
+        const status = document.getElementById('report-status');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp; Generating...';
+        status.style.color = '#94a3b8';
+        status.textContent = 'Asking Gemma 4 to write the AI summary — this may take 10–20 seconds…';
+
+        try {
+            const res = await fetch(`${API}/report`);
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                status.style.color = 'var(--danger)';
+                status.textContent = '✗ ' + (err.message || 'Failed to generate report');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-download"></i> &nbsp; Download PDF Report';
+                return;
+            }
+
+            // Trigger browser file download
+            const blob = await res.blob();
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = 'trustgrid_report.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            status.style.color = 'var(--success)';
+            status.textContent = '✓ Report downloaded successfully!';
+        } catch {
+            status.style.color = 'var(--danger)';
+            status.textContent = '✗ Cannot reach backend. Is app.py running?';
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-download"></i> &nbsp; Download PDF Report';
+    }
+
+    async function discontinueConnection() {
+    if(!confirm("Are you sure? This will remove your records from the global fraud rate calculation.")) return;
+    
+    try {
+        const res = await fetch(`${API}/discontinue`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ node_id: currentNode.node_id })
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            toast("Connection Discontinued. Local data cleared.");
+            // Refresh the Global Analysis view so the user sees the updated node count
+            loadGlobal(); 
+            // Also refresh the outcomes/results
+            loadResults();
+        }
+    } catch (err) {
+        toast("Error disconnecting from network", true);
+    }
+}
+
+
+</script>
+</body>
+</html>
